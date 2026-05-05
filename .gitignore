@@ -2,3 +2,6 @@ venv
 __init__.py
 _pycache_
 book_library
+db.sqlite3
+books/__pycache__/
+books/migrations/
