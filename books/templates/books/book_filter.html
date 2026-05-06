@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 {{ page_title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        /* Filter Panel */
+        .filter-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .filter-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .filter-group select, 
+        .filter-group input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        /* Results Summary */
+        .results-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .active-filters {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .filter-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 12px;
+        }
+        
+        /* Books Grid */
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .book-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .book-content {
+            padding: 20px;
+        }
+        
+        .book-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .book-author {
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .rating {
+            color: #f39c12;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .genre {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+        
+        .date {
+            font-size: 12px;
+            color: #95a5a6;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            background: white;
+            border-radius: 15px;
+        }
+        
+        /* Navigation */
+        .nav-links {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 {{ page_title }}</h1>
+            <p>Practice filter() and exclude() with ORM queries</p>
+        </div>
+        
+        <!-- Filter Form -->
+        <div class="filter-panel">
+            <div class="filter-title">📋 Apply Filters</div>
+            <form method="GET" action="{% url 'book_filter' %}">
+                <div class="filter-grid">
+                    <!-- Genre Filter -->
+                    <div class="filter-group">
+                        <label>Genre (filter):</label>
+                        <select name="genre">
+                            <option value="">All Genres</option>
+                            {% for code, name in all_genres %}
+                            <option value="{{ code }}" {% if filter_summary.genre == code %}selected{% endif %}>
+                                {{ name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Author Filter -->
+                    <div class="filter-group">
+                        <label>Author (contains):</label>
+                        <input type="text" name="author" value="{{ filter_summary.author }}" 
+                               placeholder="e.g., Tolkien">
+                    </div>
+                    
+                    <!-- Minimum Rating -->
+                    <div class="filter-group">
+                        <label>Minimum Rating (≥):</label>
+                        <select name="min_rating">
+                            <option value="">Any Rating</option>
+                            {% for i in "12345"|make_list %}
+                            <option value="{{ i }}" {% if filter_summary.min_rating == i %}selected{% endif %}>
+                                {{ i }} ⭐ and above
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Year Filter -->
+                    <div class="filter-group">
+                        <label>Year (exact):</label>
+                        <select name="year">
+                            <option value="">Any Year</option>
+                            {% for year in all_years %}
+                            <option value="{{ year.year }}" {% if filter_summary.year == year.year|stringformat:"s" %}selected{% endif %}>
+                                {{ year.year }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Exclude Before -->
+                    <div class="filter-group">
+                        <label>Exclude books before year:</label>
+                        <input type="number" name="exclude_before" value="{{ filter_summary.exclude_before }}" 
+                               placeholder="e.g., 2000" min="1800" max="2025">
+                    </div>
+                    
+                    <!-- Search (title or author) -->
+                    <div class="filter-group">
+                        <label>Search (title or author):</label>
+                        <input type="text" name="search" value="{{ filter_summary.search_query }}" 
+                               placeholder="Enter search term">
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">🔍 Apply Filters</button>
+                    <a href="{% url 'book_filter' %}" class="btn btn-secondary">🔄 Reset Filters</a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Results -->
+        <div class="results-summary">
+            <div>
+                <strong>📊 Found {{ total_books }} book(s)</strong>
+            </div>
+            <div>
+                <strong>💡 Tip:</strong> Try combining multiple filters!
+            </div>
+        </div>
+        
+        <!-- Active Filters Display -->
+        {% if filter_summary.genre or filter_summary.author or filter_summary.min_rating or filter_summary.year or filter_summary.exclude_before or filter_summary.search_query %}
+        <div class="active-filters" style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+            <strong>Active Filters:</strong>
+            {% if filter_summary.genre %}
+            <span class="filter-badge">Genre: {{ filter_summary.genre }}</span>
+            {% endif %}
+            {% if filter_summary.author %}
+            <span class="filter-badge">Author contains: {{ filter_summary.author }}</span>
+            {% endif %}
+            {% if filter_summary.min_rating %}
+            <span class="filter-badge">Min Rating: ≥{{ filter_summary.min_rating }}⭐</span>
+            {% endif %}
+            {% if filter_summary.year %}
+            <span class="filter-badge">Year: {{ filter_summary.year }}</span>
+            {% endif %}
+            {% if filter_summary.exclude_before %}
+            <span class="filter-badge">Excluding books before {{ filter_summary.exclude_before }}</span>
+            {% endif %}
+            {% if filter_summary.search_query %}
+            <span class="filter-badge">Search: "{{ filter_summary.search_query }}"</span>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <!-- Books Display -->
+        <div class="books-grid">
+            {% for book in books %}
+            <div class="book-card">
+                <div class="book-content">
+                    <div class="book-title">{{ book.title }}</div>
+                    <div class="book-author">✍️ {{ book.author }}</div>
+                    <div class="rating">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= book.rating %}⭐{% else %}☆{% endif %}
+                        {% endfor %}
+                        ({{ book.rating }}/5)
+                    </div>
+                    <div class="genre">{{ book.get_genre_display }}</div>
+                    <div class="date">📅 {{ book.published_date }}</div>
+                    {% if book.publisher %}
+                    <div class="date">🏢 {{ book.publisher.name }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-results">
+                <p>😕 No books found matching your criteria.</p>
+                <p>Try removing some filters or adjusting your search!</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Quick Filter Examples -->
+        <div class="filter-panel" style="margin-top: 20px;">
+            <div class="filter-title">🎯 Quick Filter Examples</div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="?genre=FIC" class="btn btn-primary">All Fiction</a>
+                <a href="?min_rating=4" class="btn btn-primary">4+ Star Books</a>
+                <a href="?exclude_before=2000" class="btn btn-primary">Published After 2000</a>
+                <a href="?genre=SCI&min_rating=4" class="btn btn-primary">Popular Sci-Fi (4+⭐)</a>
+                <a href="?search=Harry" class="btn btn-primary">Search "Harry"</a>
+                <a href="?year=2020" class="btn btn-primary">Books from 2020</a>
+                <a href="?genre=FIC&exclude_before=2000&min_rating=4" class="btn btn-primary">
+                    Advanced: Fiction, After 2000, 4+⭐
+                </a>
+            </div>
+        </div>
+        
+        <div class="nav-links">
+            <a href="{% url 'book_list' %}" class="nav-link">← All Books</a>
+            <a href="{% url 'filter_demo' %}" class="nav-link">📖 Filter Demo Page</a>
+            <a href="{% url 'popular_books' %}" class="nav-link">⭐ Popular Books</a>
+        </div>
+    </div>
+</body>
+</html>

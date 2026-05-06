@@ -29,3 +29,7 @@ class BookAdmin(admin.ModelAdmin):
     
     # Fields to show in detail form
     fields = ['title', 'author', 'genre', 'published_date']
+
+    def rating_stars(self, obj):
+        return '⭐' * obj.rating
+    rating_stars.short_description = 'Rating Stars'

@@ -16,7 +16,14 @@ class Book(models.Model):
         ('ROM', 'Romance'),
         ('HIS', 'History'),
     ]
-    
+    #rating choice 
+    RATING_CHOICES = [
+        (1, '⭐ - Poor'),
+        (2, '⭐⭐ - Fair'),
+        (3, '⭐⭐⭐ - Good'),
+        (4, '⭐⭐⭐⭐ - Very Good'),
+        (5, '⭐⭐⭐⭐⭐ - Excellent'),
+    ]
     # Model fields
     title = models.CharField(
         max_length=200,
@@ -39,6 +46,13 @@ class Book(models.Model):
         help_text="Enter publication date (YYYY-MM-DD)"
     )
     
+    rating = models.IntegerField(choices = RATING_CHOICES,default = 5,)
+
+    review = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Write your review here (optional)"
+    )
     # Optional: Add metadata fields (good practice)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -52,7 +66,9 @@ class Book(models.Model):
         ordering = ['-published_date']  # Most recent first
         verbose_name = "Book"
         verbose_name_plural = "Books"
-    
+        # Helper method to check if book is popular
+    def is_popular(self):
+        return self.rating >= 4
     # Optional: Add validation
     def save(self, *args, **kwargs):
         # Ensure published_date is not in future

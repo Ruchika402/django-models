@@ -107,5 +107,16 @@
         <span class="genre-item">{{ stat.genre }}: {{ stat.count }}</span>
         {% endfor %}
     </div>
+    <!-- Add this after the h1 or somewhere visible -->
+    <div style="text-align: center; margin: 20px 0;">
+        <a href="{% url 'book_filter' %}" style="background: #3498db; color: white; padding: 10px 20px; 
+       text-decoration: none; border-radius: 5px; margin: 0 10px;">
+        🔍 Advanced Filter & Search
+        </a>
+        <a href="{% url 'filter_demo' %}" style="background: #9b59b6; color: white; padding: 10px 20px; 
+       text-decoration: none; border-radius: 5px; margin: 0 10px;">
+        📖 Learn Filter/Exclude
+        </a>
+    </div>
 </body>
 </html>

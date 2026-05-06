@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📖 ORM Filter & Exclude Demo</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-section {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #e94560;
+        }
+        
+        .demo-title {
+            color: #e94560;
+            font-size: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .code-block {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .results {
+            background: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .book-item {
+            background: #0f3460;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #e94560;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #e94560;
+        }
+        
+        .stats {
+            text-align: center;
+            background: #16213e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐍 Django ORM - filter() & exclude() Demo</h1>
+        
+        <div class="stats">
+            <strong>📊 Total Books in Database: {{ total_books }}</strong>
+        </div>
+        
+        <!-- Example 1: Basic filter() -->
+        <div class="demo-section">
+            <div class="demo-title">1️⃣ filter() - Basic Filtering</div>
+            <div class="code-block">
+                <code>fiction_books = Book.objects.filter(genre='FIC')</code>
+            </div>
+            <div class="results">
+                <strong>✅ Result:</strong> {{ fiction_books.count() }} Fiction books found
+                {% for book in fiction_books|slice:":5" %}
+                <div class="book-item">📘 {{ book.title }} by {{ book.author }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Example 2: Basic exclude() -->
+        <div class="demo-section">
+            <div class="demo-title">2️⃣ exclude() - Excluding Records</div>
+            <div class="code-block">
+                <code>recent_books = Book.objects.exclude(published_date__year__lt=2000)</code>
+            </div>
+            <div class="results">
+                <strong>✅ Result:</strong> {{ recent_books.count() }} books published in/after 2000
+                {% for book in recent_books|slice:":5" %}
+                <div class="book-item">📘 {{ book.title }} ({{ book.published_date.year }})</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Example 3: Chaining filters -->
+        <div class="demo-section">
+            <div class="demo-title">3️⃣ Chain Filters - AND Condition</div>
+            <div class="code-block">
+                <code>popular_fiction = Book.objects.filter(genre='FIC').filter(rating__gte=4)</code>
+            </div>
+            <div class="results">
+                <strong>✅ Result:</strong> {{ popular_fiction.count() }} popular fiction books (4+⭐)
+                {% for book in popular_fiction %}
+                <div class="book-item">📘 {{ book.title }} - Rating: {{ book.rating }}⭐</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Example 4: Multiple conditions in one filter -->
+        <div class="demo-section">
+            <div class="demo-title">4️⃣ Multiple Conditions (Comma Separated)</div>
+            <div class="code-block">
+                <code>classic_sci_fi = Book.objects.filter(genre='SCI', published_date__year__lt=2000)</code>
+            </div>
+            <div class="results">
+                <strong>✅ Result:</strong> {{ classic_sci_fi.count() }} classic Sci-Fi books (before 2000)
+                {% for book in classic_sci_fi %}
+                <div class="book-item">📘 {{ book.title }} ({{ book.published_date.year }})</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Example 5: Multiple exclude() -->
+        <div class="demo-section">
+            <div class="demo-title">5️⃣ Chaining exclude()</div>
+            <div class="code-block">
+                <code>
+                not_fiction_not_low_rating = Book.objects.exclude(genre='FIC').exclude(rating__lt=3)
+                </code>
+            </div>
+            <div class="results">
+                <strong>✅ Result:</strong> {{ not_fiction_not_low_rating.count() }} non-fiction books with rating ≥3
+                {% for book in not_fiction_not_low_rating|slice:":5" %}
+                <div class="book-item">📘 {{ book.title }} ({{ book.get_genre_display }}) - {{ book.rating }}⭐</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Example 6: __in lookup -->
+        <div class="demo-section">
+            <div class="demo-title">6️⃣ __in Lookup (Multiple Values)</div>
+            <div class="code-block">
+                <code>favorite_genres = Book.objects.filter(genre__in=['FIC', 'SCI', 'FAN'])</code>
+            </div>
+            <div class="results">
+                <strong>✅ Result:</strong> {{ favorite_genres.count() }} books in Fiction, Sci-Fi, or Fantasy
+                {% for book in favorite_genres|slice:":5" %}
+                <div class="book-item">📘 {{ book.title }} ({{ book.get_genre_display }})</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Example 7: Combining filter() and exclude() -->
+        <div class="demo-section">
+            <div class="demo-title">7️⃣ filter().exclude() - Combining Both</div>
+            <div class="code-block">
+                <code>
+                filtered = Book.objects.filter(rating__gte=3).exclude(published_date__year__lt=1990)
+                </code>
+            </div>
+            <div class="results">
+                <strong>✅ Result:</strong> {{ filtered.count() }} books with rating ≥3 AND published after 1989
+                {% for book in filtered|slice:":5" %}
+                <div class="book-item">📘 {{ book.title }} ({{ book.rating }}⭐, {{ book.published_date.year }})</div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{% url 'book_filter' %}" style="color: #e94560; text-decoration: none;">← Back to Filter Interface</a>
+            &nbsp;|&nbsp;
+            <a href="{% url 'book_list' %}" style="color: #e94560; text-decoration: none;">View All Books →</a>
+        </div>
+    </div>
+</body>
+</html>
