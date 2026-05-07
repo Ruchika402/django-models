@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .search-container {
+            background: white;
+            border-radius: 50px;
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            font-size: 18px;
+            border-radius: 50px;
+            outline: none;
+        }
+        
+        .search-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.3s;
+        }
+        
+        .search-button:hover {
+            background: #2980b9;
+        }
+        
+        .results-header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .results-count {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .query-highlight {
+            background: #f1c40f;
+            padding: 2px 8px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .books-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .book-result {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            transition: transform 0.3s;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .book-result:hover {
+            transform: translateX(10px);
+        }
+        
+        .book-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .book-author {
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        
+        .match-highlight {
+            background-color: #f1c40f;
+            padding: 0 3px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .no-results {
+            background: white;
+            border-radius: 15px;
+            padding: 60px;
+            text-align: center;
+        }
+        
+        .example-searches {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .example-btn {
+            background: #ecf0f1;
+            color: #2c3e50;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .example-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: white;">🔍 Search Books by Title</h1>
+            <p style="color: white;">Using __icontains lookup for case-insensitive search</p>
+        </div>
+        
+        <div class="search-container">
+            <form method="GET" action="{% url 'search_bar' %}" style="display: flex; width: 100%; gap: 10px;">
+                <input type="text" 
+                       name="q" 
+                       class="search-input" 
+                       placeholder="Enter book title or author..." 
+                       value="{{ query }}"
+                       autofocus>
+                <button type="submit" class="search-button">🔍 Search</button>
+            </form>
+        </div>
+        
+        {% if query %}
+        <div class="results-header">
+            <div class="results-count">
+                Found {{ total_count }} result{{ total_count|pluralize }}
+                {% if total_count > 0 %}for{% else %}matching{% endif %}
+                <span class="query-highlight">"{{ query }}"</span>
+            </div>
+            <p style="margin-top: 10px; color: #7f8c8d;">
+                Using <code style="background: #f0f0f0; padding: 2px 5px; border-radius: 3px;">
+                Book.objects.filter(title__icontains='{{ query }}')
+                </code>
+            </p>
+        </div>
+        
+        <div class="books-list">
+            {% for book in books %}
+            <div class="book-result">
+                <div class="book-title">
+                    {% if query|lower in book.title|lower %}
+                        {% with title_words=book.title.split %}
+                            {% for word in title_words %}
+                                {% if query|lower in word|lower %}
+                                    <span class="match-highlight">{{ word }}</span>
+                                {% else %}
+                                    {{ word }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    {% else %}
+                        {{ book.title }}
+                    {% endif %}
+                </div>
+                <div class="book-author">
+                    by {{ book.author }}
+                    {% if query|lower in book.author|lower %}
+                        <span style="background: #2ecc71; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">
+                            Author match
+                        </span>
+                    {% endif %}
+                </div>
+                <div style="margin-top: 10px;">
+                    <span style="background: #3498db; color: white; padding: 4px 8px; border-radius: 5px; font-size: 12px;">
+                        {{ book.get_genre_display }}
+                    </span>
+                    <span style="margin-left: 10px; color: #f39c12;">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= book.rating %}⭐{% endif %}
+                        {% endfor %}
+                    </span>
+                    <span style="margin-left: 10px; font-size: 12px; color: #95a5a6;">
+                        {{ book.published_date }}
+                    </span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-results">
+                <h3>😕 No books found matching "{{ query }}"</h3>
+                <p>Try searching for a different title or author name.</p>
+                <p style="margin-top: 20px; font-size: 14px;">
+                    💡 Tip: Search is case-insensitive, so "harry" will match "Harry"
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% else %}
+        <div class="no-results">
+            <h3>🔎 Ready to search?</h3>
+            <p>Enter a book title or author name in the search box above.</p>
+            <p style="margin-top: 20px;">Example: "Harry", "Tolkien", "1984"</p>
+        </div>
+        {% endif %}
+        
+        <div class="example-searches">
+            <strong>💡 Try these example searches:</strong>
+            <div class="example-buttons">
+                <a href="?q=The" class="example-btn">"The" (starts with)</a>
+                <a href="?q=potter" class="example-btn">"potter" (lowercase)</a>
+                <a href="?q=HARRY" class="example-btn">"HARRY" (uppercase)</a>
+                <a href="?q=1984" class="example-btn">"1984" (numbers)</a>
+                <a href="?q=love" class="example-btn">"love" (anywhere)</a>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{% url 'advanced_search' %}" class="back-link">← Advanced Search with Filters</a>
+            <a href="{% url 'book_list' %}" class="back-link">📚 All Books</a>
+        </div>
+    </div>
+</body>
+</html>
