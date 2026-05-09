@@ -6,3 +6,4 @@ db.sqlite3
 books/__pycache__/
 books/migrations/
 templatetags/__init__.py
+library/__pycache__
