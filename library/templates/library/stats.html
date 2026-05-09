@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Libray Stats</title>
+</head>
+<style>
+    body {font-family: Arial;
+    margin: 2rem;}
+    .leaderboard li {margin : 0.5rem 0;}
+</style>
+<body>
+    {{avg_yr}} {average of all books}
+    <h2>{most books}</h2>
+    <ol class="leaderboard">
+        {% for author in author_leaderboard %}
+        <li>{{author.name }}-{{author.books_count}} book {{author.book_count|pluralize}}</li>
+        {% empty %}
+        <li>
+            No authors found
+        </li>
+        {% endfor %}
+    </ol>
+</body>
+</html>
