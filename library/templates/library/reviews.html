@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reviews for {{ book.title }}</title>
+</head>
+<body>
+    <h1>{{ book.title }}</h1>
+    <h2>Reviews ({{ reviews.count }})</h2>
+    
+    {% for review in reviews %}
+        <div>
+            <strong>{{ review.reviewer_name }}</strong> 
+            rated: {{ review.rating }}★
+            <p>{{ review.comment }}</p>
+            <small>{{ review.created_at }}</small>
+        </div>
+        <hr>
+    {% empty %}
+        <p>No reviews yet.</p>
+    {% endfor %}
+</body>
+</html>
