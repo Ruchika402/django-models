@@ -28,3 +28,74 @@ def book_review(request, book_id):
         'book': book,
     }
     return render(request, 'library/reviews.html', context)
+
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Count, Avg
+from .models import Book, Author
+from .forms import BookForm
+
+def book_management(request):
+    """Single view handling ALL CRUD operations"""
+    mode = request.GET.get('mode', 'list')  # Default to list view
+    
+    # ========== LIST VIEW ==========
+    if mode == 'list':
+        books = Book.objects.select_related('author').all().order_by('title')
+        return render(request, 'library/book_management.html', {
+            'mode': 'list',
+            'books': books
+        })
+    
+    # ========== CREATE VIEW ==========
+    elif mode == 'create':
+        if request.method == 'POST':
+            form = BookForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('book_management')  # Redirect to list
+        else:
+            form = BookForm()
+        
+        return render(request, 'library/book_management.html', {
+            'mode': 'create',
+            'form': form
+        })
+    
+    # ========== EDIT VIEW ==========
+    elif mode == 'edit':
+        book_id = request.GET.get('book_id')
+        book = get_object_or_404(Book, id=book_id)
+        
+        if request.method == 'POST':
+            form = BookForm(request.POST, instance=book)
+            if form.is_valid():
+                form.save()
+                return redirect('book_management')
+        else:
+            form = BookForm(instance=book)
+        
+        return render(request, 'library/book_management.html', {
+            'mode': 'edit',
+            'form': form,
+            'book': book
+        })
+    
+    # ========== DELETE VIEW ==========
+    elif mode == 'delete':
+        book_id = request.GET.get('book_id')
+        book = get_object_or_404(Book, id=book_id)
+        
+        if request.method == 'POST':
+            book.delete()
+            return redirect('book_management')
+        
+        return render(request, 'library/book_management.html', {
+            'mode': 'delete',
+            'book': book
+        })
+    
+    # Fallback to list view
+    return redirect('book_management')

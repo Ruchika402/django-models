@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Library Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; max-width: 1200px; margin: 2rem auto; }
+        
+        /* Form Styles */
+        .form-container { max-width: 500px; margin: 0 auto; padding: 2rem; background: #f9f9f9; border-radius: 8px; }
+        .form-group { margin: 1rem 0; }
+        label { display: inline-block; width: 120px; font-weight: bold; }
+        input, select { padding: 8px; width: 250px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 20px; margin-top: 1rem; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #45a049; }
+        .cancel-btn { background: #666; text-decoration: none; color: white; padding: 10px 20px; border-radius: 4px; display: inline-block; }
+        .cancel-btn:hover { background: #555; }
+        .error { color: red; font-size: 0.9em; margin-top: 5px; }
+        
+        /* List Styles */
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #4CAF50; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .add-btn { display: inline-block; margin-bottom: 1rem; padding: 10px 20px; background: #4CAF50; color: white; text-decoration: none; border-radius: 4px; }
+        .edit-btn { color: #2196F3; text-decoration: none; margin-right: 10px; }
+        .delete-btn { color: #f44336; text-decoration: none; }
+        
+        /* Delete Confirmation Styles */
+        .warning-box { background: #ffebee; padding: 1rem; border-left: 4px solid #f44336; margin: 1rem 0; }
+        .warning-box h3 { color: #f44336; margin-top: 0; }
+        .delete-submit { background: #f44336; }
+        .delete-submit:hover { background: #da190b; }
+        
+        /* Navigation */
+        .nav-buttons { margin-top: 2rem; text-align: center; }
+        .nav-btn { background: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; }
+        
+        h1 { color: #333; text-align: center; }
+        hr { margin: 2rem 0; }
+    </style>
+</head>
+<body>
+
+{% if mode == 'list' %}
+    <!-- ==================== LIST VIEW (READ) ==================== -->
+    <h1>📚 My Book Library</h1>
+    
+    <a href="?mode=create" class="add-btn">+ Add New Book</a>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Published Year</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <tr>
+                <td>{{ book.title }}</td>
+                <td>{{ book.author.name }}</td>
+                <td>{{ book.published_year }}</td>
+                <td>
+                    <a href="?mode=edit&book_id={{ book.id }}" class="edit-btn">✏️ Edit</a>
+                    <a href="?mode=delete&book_id={{ book.id }}" class="delete-btn">🗑️ Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center;">No books found. <a href="?mode=create">Add your first book!</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% elif mode == 'create' %}
+    <!-- ==================== CREATE VIEW ==================== -->
+    <div class="form-container">
+        <h1>➕ Add New Book</h1>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="form-group">
+                    <label>{{ field.label }}:</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div>
+                <button type="submit">💾 Save Book</button>
+                <a href="?mode=list" class="cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+{% elif mode == 'edit' %}
+    <!-- ==================== EDIT VIEW (UPDATE) ==================== -->
+    <div class="form-container">
+        <h1>✏️ Edit Book</h1>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="form-group">
+                    <label>{{ field.label }}:</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div>
+                <button type="submit">💾 Update Book</button>
+                <a href="?mode=list" class="cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+{% elif mode == 'delete' %}
+    <!-- ==================== DELETE CONFIRMATION VIEW ==================== -->
+    <div class="form-container">
+        <h1>🗑️ Delete Book</h1>
+        
+        <div class="warning-box">
+            <h3>⚠️ Warning: This action cannot be undone!</h3>
+            <p>Are you sure you want to delete "<strong>{{ book.title }}</strong>" by <strong>{{ book.author.name }}</strong>?</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="delete-submit">Yes, Delete this Book</button>
+            <a href="?mode=list" class="cancel-btn">No, Cancel</a>
+        </form>
+    </div>
+
+{% endif %}
+
+<!-- Navigation Footer -->
+<div class="nav-buttons">
+    <a href="?mode=list" class="nav-btn">📖 View All Books</a>
+    <a href="?mode=create" class="nav-btn">➕ Add New Book</a>
+</div>
+
+</body>
+</html>
