@@ -15,20 +15,16 @@ from django.shortcuts import render
 from .models import Book, Review
 
 def book_review(request, book_id):
-    # WITHOUT select_related (bad - N+1 queries)
-    # book = Book.objects.get(id=book_id)
-    # reviews = book.reviews.all()  # hits DB again
-    
-    # WITH select_related (good - single query)
-    # But note: select_related doesn't work backward (FK to book is automatic)
     book = Book.objects.get(id=book_id)
-    review = book.review.select_related('book').all()  # book is already loaded
     
-    # Actually, simpler - just get reviews with book prefetched
-    review = Review.objects.filter(book_id=book_id).select_related('book')
+    # Option 1: Get reviews through book (using related_name='reviews')
+    reviews = book.reviews.select_related('book').all()  # Note: 'reviews' with 's'
+    
+    # Option 2: OR get reviews through Review model (choose ONE, not both)
+    # reviews = Review.objects.filter(book_id=book_id).select_related('book')
     
     context = {
-        'review': review,
+        'reviews': reviews,  # Note: plural 'reviews'
         'book': book,
     }
     return render(request, 'library/reviews.html', context)

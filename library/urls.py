@@ -1,8 +1,8 @@
 from django.urls import path
 from library import views
 
-urlpatterns = {
+urlpatterns = [
     path('stats/',views.stats_dashboard,name = 'stats'),
-     path('book/<int:book_id>/reviews/', views.book_reviews, name='book_reviews')
+    path('book/<int:book_id>/review/', views.book_review, name='book_review')
 
-}
+]
