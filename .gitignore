@@ -8,4 +8,6 @@ books/migrations/
 templatetags/__init__.py
 library/__pycache__/
 *pyc
+myapi/myapi/__pycache__/
+myapi/tasks/__pycache__/
 
