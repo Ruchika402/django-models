@@ -43,7 +43,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         return queryset.filter(
             Q(created_by=user) | Q(assigned_to=user)
         )
-    
+    @swagger_auto_schema(
+    operation_description="Mark a task as completed",
+    responses={200: 'Task completed successfully', 404: 'Task not found'}
+    )
     # Custom action: Get user's dashboard stats
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def dashboard(self, request):
@@ -70,18 +73,24 @@ class TaskViewSet(viewsets.ModelViewSet):
     # Custom action: Mark task as complete
     @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
+        """Mark a specific task as completed"""
         task = self.get_object()
         task.status = 'completed'
         task.save()
-        
-        # Create activity log (you could add an Activity model)
-        print(f"Task {task.id} completed by {request.user.username}")
-        
-        return Response({
-            'status': 'completed',
-            'task': TaskSerializer(task, context={'request': request}).data,
-            'message': f'Task "{task.title}" marked as complete!'
-        })
+        return Response({'status': 'completed', 'task_id': task.id})
+    
+    @swagger_auto_schema(
+        operation_description="Get user dashboard statistics",
+        manual_parameters=[
+            openapi.Parameter(
+                'days',
+                openapi.IN_QUERY,
+                description="Number of days to analyze",
+                type=openapi.TYPE_INTEGER
+            )
+        ],
+        responses={200: 'Dashboard statistics'}
+    )
     
     # Custom action: Bulk update status
     @action(detail=False, methods=['post'])
@@ -133,3 +142,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
         
         serializer = TaskListSerializer(tasks, many=True)
         return Response(serializer.data)
+    
+
+
+
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
