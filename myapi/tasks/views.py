@@ -8,6 +8,10 @@ from .models import Task, Category
 from .serializers import TaskSerializer, CategorySerializer
 from .pagination import StandardResultsSetPagination
 from .permissions import IsAssignedOrCreator, IsOwnerOrReadOnly
+from django.core.cache import cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
 
 # Create your views here.
 class TaskViewSet(viewsets.ModelViewSet):
@@ -43,33 +47,45 @@ class TaskViewSet(viewsets.ModelViewSet):
         return queryset.filter(
             Q(created_by=user) | Q(assigned_to=user)
         )
-    @swagger_auto_schema(
-    operation_description="Mark a task as completed",
-    responses={200: 'Task completed successfully', 404: 'Task not found'}
-    )
+   
+    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
+    @method_decorator(vary_on_headers('Authorization'))
+    def list(self, request, *args, **kwargs):
+        """Cached list endpoint"""
+        return super().list(request, *args, **kwargs)
     # Custom action: Get user's dashboard stats
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def dashboard(self, request):
-        """Get personalized task statistics"""
-        user = request.user
-        tasks = Task.objects.filter(Q(created_by=user) | Q(assigned_to=user))
+        """Cached dashboard data"""
+        user_id = request.user.id
+        cache_key = f'dashboard_{user_id}'
+        
+        # Try to get from cache
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+        
+        # Calculate fresh data
+        from django.utils import timezone
+        tasks = Task.objects.filter(created_by=request.user)
         
         stats = {
             'total': tasks.count(),
             'completed': tasks.filter(status='completed').count(),
-            'pending': tasks.filter(status='pending').count(),
-            'in_progress': tasks.filter(status='in_progress').count(),
-            'high_priority': tasks.filter(priority__gte=3).count(),
-            
+            'completion_rate': self._calculate_rate(tasks),
+            'overdue': tasks.filter(due_date__lt=timezone.now()).count(),
         }
         
-        if stats['total'] > 0:
-            stats['completion_rate'] = round((stats['completed'] / stats['total']) * 100, 2)
-        else:
-            stats['completion_rate'] = 0
+        # Store in cache for 5 minutes
+        cache.set(cache_key, stats, timeout=300)
         
         return Response(stats)
-    
+    @action(detail=False, methods=['post'])
+    def invalidate_cache(self, request):
+        """Clear user's dashboard cache"""
+        cache_key = f'dashboard_{request.user.id}'
+        cache.delete(cache_key)
+        return Response({'message': 'Cache cleared'})
     # Custom action: Mark task as complete
     @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
@@ -79,19 +95,8 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.save()
         return Response({'status': 'completed', 'task_id': task.id})
     
-    @swagger_auto_schema(
-        operation_description="Get user dashboard statistics",
-        manual_parameters=[
-            openapi.Parameter(
-                'days',
-                openapi.IN_QUERY,
-                description="Number of days to analyze",
-                type=openapi.TYPE_INTEGER
-            )
-        ],
-        responses={200: 'Dashboard statistics'}
-    )
-    
+   
+     
     # Custom action: Bulk update status
     @action(detail=False, methods=['post'])
     def bulk_update_status(self, request):
@@ -118,7 +123,24 @@ class TaskViewSet(viewsets.ModelViewSet):
             'status': new_status,
             'message': f'Updated {updated_count} tasks to {new_status}'
         })
-
+class TaskViewSet(viewsets.ModelViewSet):
+    
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+        # Clear cache after creating
+        self._clear_user_cache()
+    
+    def perform_update(self, serializer):
+        serializer.save()
+        self._clear_user_cache()
+    
+    def perform_destroy(self, instance):
+        instance.delete()
+        self._clear_user_cache()
+    
+    def _clear_user_cache(self):
+        cache_key = f'dashboard_{self.request.user.id}'
+        cache.delete(cache_key)
 class CategoryViewSet(viewsets.ModelViewSet):
     """Category CRUD operations"""
     queryset = Category.objects.prefetch_related('tasks').all()
